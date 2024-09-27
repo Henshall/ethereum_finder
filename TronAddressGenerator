@@ -1,0 +1,63 @@
+import ecdsa
+import base58
+import ecdsa
+import random
+from Crypto.Hash import keccak
+
+class TronAddressGenerator:
+    def keccak256(self, data):
+        hasher = keccak.new(digest_bits=256)
+        hasher.update(data)
+        return hasher.digest()
+
+    def get_signing_key(self, raw_priv):
+        return ecdsa.SigningKey.from_string(raw_priv, curve=ecdsa.SECP256k1)
+
+    def verifying_key_to_addr(self, key):
+        pub_key = key.to_string()
+        primitive_addr = b'\x41' + self.keccak256(pub_key)[-20:]
+        addr = base58.b58encode_check(primitive_addr)
+        return addr
+
+    def intToPrivateKey(self, num):
+        numHex = hex(num)[2:].zfill(64)
+        raw = bytes.fromhex(numHex)
+        return raw.hex()
+
+    def intToPublicKey(self, num):
+        numHex = hex(num)[2:].zfill(64)
+        raw = bytes.fromhex(numHex)
+        key = self.get_signing_key(raw)
+        addr = self.verifying_key_to_addr(key.get_verifying_key()).decode()
+        return key.get_verifying_key().to_string().hex()
+
+    def intToAddress(self, num):
+        numHex = hex(num)[2:].zfill(64)
+        raw = bytes.fromhex(numHex)
+        key = self.get_signing_key(raw)
+        return self.verifying_key_to_addr(key.get_verifying_key()).decode() 
+
+
+# BELOW IS A NOTE ON THE CREATION OF THE ABOVE FUNCTIONS 
+# YOU CAN USE IT FOR TESTING OR TO DETERMINE HOW THE ABOVE CLASS WORKS
+
+#  create tronAddressGenerator
+# num = 7852987345098237509287354
+# tag = TronAddressGenerator()
+# tagPrivateKey = tag.intToPrivateKey(num)
+# tagAddress = tag.intToAddress(num)
+# print(tagPrivateKey)
+# print(tagAddress)
+# numHex = hex(num)[2:].zfill(64)
+# print(numHex)
+# raw = bytes.fromhex(numHex)
+# # raw = bytes(randomSample)
+# print("raw = " , raw)
+# key = tag.get_signing_key(raw)
+# print("key = " , key)
+# addr = tag.verifying_key_to_addr(key.get_verifying_key()).decode()
+# print('Address:     ', addr)
+# print('Address(hex):', base58.b58decode_check(addr.encode()).hex())
+# print('Public Key:  ', key.get_verifying_key().to_string().hex())
+# print('Private Key: ', raw.hex())
+# print('Private Key: ', len(raw.hex()))
